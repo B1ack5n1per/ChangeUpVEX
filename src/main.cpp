@@ -39,6 +39,7 @@ void autonomous(void) {
 }
 
 void usercontrol(void) {
+  // Initiate Motors and GUI
   drive.spin(directionType::fwd);
   indexer.spin(directionType::fwd);
   intakeLeft.spin(directionType::fwd);
@@ -63,6 +64,7 @@ void usercontrol(void) {
       indexer.setVelocity(0, velocityUnits::pct);
     }
     
+    // Intake Control
     if (control.ButtonL1.pressing()) {
       intakeLeft.setVelocity(-100, velocityUnits::pct);
       intakeRight.setVelocity(100, velocityUnits::pct);
@@ -74,6 +76,7 @@ void usercontrol(void) {
       intakeRight.setVelocity(0, velocityUnits::pct);
     }
 
+    // Flywheel Control
     if (control.ButtonB.pressing()) {
       if (!holding) {
         flywheelSpinning = !flywheelSpinning;
@@ -88,6 +91,7 @@ void usercontrol(void) {
       holding = false;
     }
 
+    // Update GUI
     gui.update();
     wait(20, msec); 
   }

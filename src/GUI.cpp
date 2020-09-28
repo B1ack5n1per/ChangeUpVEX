@@ -3,12 +3,7 @@
 #include "XDrive.cpp"
 
 enum Tabs {
-  AUTON, MOTOR, SENSOR
-};
-
-class Element {
-  public:
-    virtual void draw(brain::lcd screen, Tabs currentTab);
+  AUTON, MOTOR, SENSOR, ALL
 };
 
 class Rectangle {
@@ -41,8 +36,26 @@ class Btn {
       tab = TAB;
     }
 
+    Btn(Rectangle rectangle, color CLR) {
+      rect = rectangle;
+      clr = CLR;
+      tab = Tabs::ALL;
+    }
+
+    Btn(Rectangle rectangle, Tabs TAB) {
+      rect = rectangle;
+      clr = color(255, 255, 255);
+      tab = TAB;
+    }
+
+    Btn(Rectangle rectangle) {
+      rect = rectangle;
+      clr = color(255, 255, 255);
+      tab = Tabs::ALL;
+    }
+
     void draw(brain::lcd screen, Tabs currentTab) {
-      if (currentTab == tab) {
+      if (currentTab == tab || tab == Tabs::ALL) {
         screen.drawRectangle(rect.x, rect.y, rect.w, rect.h, clr);
       }
     }
@@ -61,18 +74,21 @@ class GUI {
     Tabs currentTab = Tabs::MOTOR;
     brain::lcd screen;
     bool pressing;
-    std::vector<MotorController> motors;
-    Btn buttons[2] = { Btn(Rectangle(0, 0, 200, 50), color(238, 238, 238), Tabs::MOTOR), Btn(Rectangle(250, 0, 200, 50), color(238, 238, 238), Tabs::SENSOR)};
+    vector<MotorController> motors;
+    vector<Btn> buttons;
 
     GUI(brain::lcd SCREEN, vector<MotorController> mtrs) {
       screen = SCREEN;
       motors = mtrs;
+      buttons.push_back(Btn(Rectangle(0, 0, 200, 50), color(238, 238, 238), Tabs::MOTOR));
+      buttons.push_back(Btn(Rectangle(250, 0, 200, 50), color(238, 238, 238), Tabs::SENSOR)); 
     }
 
+    // Draw Elements
     void draw() {
       screen.clearScreen(color(51, 51, 51));
-      for (int i = 0; i < 2; i++) {
-        buttons[i].draw(screen, currentTab);
+      for (int i = 0; i < buttons.size(); i++) {
+        buttons.at(i).draw(screen, currentTab);
       }
       if (currentTab == Tabs::MOTOR) {
         for (int i = 0; i < motors.size(); i++) {
@@ -82,10 +98,11 @@ class GUI {
       }
     }
 
+    // Handle Screen Press
     void update() {
       if (screen.pressing()) {
-        for (int i = 0; i < 2; i++) {
-          buttons[i].update(screen.xPosition(), screen.yPosition());
+        for (int i = 0; i < buttons.size(); i++) {
+          buttons.at(i).update(screen.xPosition(), screen.yPosition());
         }
         if (buttons[0].pressed) {
           currentTab = Tabs::SENSOR;
@@ -99,8 +116,8 @@ class GUI {
       }
 
       if (pressing && !screen.pressing()) {
-        for (int i = 0; i < 2; i++) {
-          buttons[i].update(10000, 10000);
+        for (int i = 0; i < buttons.size(); i++) {
+          buttons.at(i).update(10000, 10000);
         }
         draw(); 
         pressing = false;
