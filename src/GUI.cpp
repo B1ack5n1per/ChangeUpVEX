@@ -2,66 +2,76 @@
 #include "vector"
 #include "XDrive.cpp"
 
-enum Tabs {
+enum TabType {
   AUTON, MOTOR, SENSOR, ALL
 };
 
-class Rectangle {
-  public: 
-    int x,y,w,h;
-    Rectangle(int X, int Y, int W, int H) {
+enum Auton {
+  BLUELEFT, BLUERIGHT, REDLEFT, REDRIGHT
+};
+
+class AutonButton {
+  public:
+    string text;
+    color clr;
+    bool pressed;
+    int x, y, w, h;
+    Auton auton;
+
+    AutonButton(int X, int Y, int W, int H, color CLR, string TEXT, Auton AUTON) {
       x = X;
       y = Y;
       w = W;
       h = H;
-    }
-    Rectangle() {
-      x = 0;
-      y = 0;
-      w = 0;
-      h = 0;
-    }
-};
-
-class Btn {
-  public: 
-    Tabs tab;
-    Rectangle rect;
-    color clr;
-    bool pressed;
-
-    Btn(Rectangle rectangle, color CLR, Tabs TAB) {
-      rect = rectangle;
       clr = CLR;
-      tab = TAB;
+      text = TEXT;
+      auton = AUTON;
     }
 
-    Btn(Rectangle rectangle, color CLR) {
-      rect = rectangle;
-      clr = CLR;
-      tab = Tabs::ALL;
-    }
-
-    Btn(Rectangle rectangle, Tabs TAB) {
-      rect = rectangle;
-      clr = color(255, 255, 255);
-      tab = TAB;
-    }
-
-    Btn(Rectangle rectangle) {
-      rect = rectangle;
-      clr = color(255, 255, 255);
-      tab = Tabs::ALL;
-    }
-
-    void draw(brain::lcd screen, Tabs currentTab) {
-      if (currentTab == tab || tab == Tabs::ALL) {
-        screen.drawRectangle(rect.x, rect.y, rect.w, rect.h, clr);
+    void draw(brain::lcd screen) {
+      screen.drawRectangle(x, y, w, h, clr);
+      if (!text.empty()) {
+        screen.printAt(x + (w - screen.getStringWidth(text.c_str())) / 2, y + (h - screen.getStringWidth(text.c_str())) / 2, text.c_str());
       }
     }
 
-    void update(int x, int y) {
-      if (x >= rect.x && y >= rect.y && x <= rect.x + rect.w && y <= rect.y + rect.h) {
+    void update(int screenX, int screenY) {
+      if (screenX >= x && screenY >= y && screenX <= x + w && screenY <= y + h) {
+        pressed = true;
+      } else {
+        pressed = false;
+      }
+    }
+};
+
+class TabButton {
+  public: 
+    string text;
+    color clr;
+    TabType tab;
+    bool pressed;
+    int x, y, w, h;
+
+    TabButton(int X, int Y, int W, int H, color CLR, TabType TAB, string TEXT) {
+      x = X;
+      y = Y;
+      w = W;
+      h = H;
+      clr = CLR;
+      text = TEXT;
+      tab = TAB;
+    }
+
+    void draw(brain::lcd screen, TabType currentTab) {
+      screen.drawRectangle(x, y, w, h, clr);
+      if (!text.empty()) {
+        screen.printAt(x + (w - screen.getStringWidth(text.c_str())) / 2, y + (h - screen.getStringWidth(text.c_str())) / 2, text.c_str());
+      }
+
+    }
+
+    void update(int screenX, int screenY) {
+      if (screenX >= x && screenY >= y && screenX <= x + w && screenY <= y + h) {
         pressed = true;
       } else {
         pressed = false;
@@ -71,26 +81,29 @@ class Btn {
 
 class GUI {
   public:
-    Tabs currentTab = Tabs::MOTOR;
     brain::lcd screen;
-    bool pressing;
     vector<MotorController> motors;
-    vector<Btn> buttons;
+    vector<TabButton> tabs;
+    vector<AutonButton> autons;
+    TabType currentTab = TabType::MOTOR;
+    Auton autonChoice = Auton::BLUELEFT;
+    bool pressing;
 
     GUI(brain::lcd SCREEN, vector<MotorController> mtrs) {
       screen = SCREEN;
       motors = mtrs;
-      buttons.push_back(Btn(Rectangle(0, 0, 200, 50), color(238, 238, 238), Tabs::MOTOR));
-      buttons.push_back(Btn(Rectangle(250, 0, 200, 50), color(238, 238, 238), Tabs::SENSOR)); 
+      tabs.push_back(TabButton(0, 0, 155, 50, color(238, 238, 238), TabType::AUTON, "Auton"));
+      tabs.push_back(TabButton(165, 0, 155, 50, color(238, 238, 238), TabType::MOTOR, "Motors"));
+      tabs.push_back(TabButton(330, 0, 155, 50, color(238, 238, 238), TabType::SENSOR, "Sensors"));
     }
 
     // Draw Elements
     void draw() {
       screen.clearScreen(color(51, 51, 51));
-      for (int i = 0; i < buttons.size(); i++) {
-        buttons.at(i).draw(screen, currentTab);
+      for (int i = 0; i < tabs.size(); i++) {
+        tabs.at(i).draw(screen, currentTab);
       }
-      if (currentTab == Tabs::MOTOR) {
+      if (currentTab == TabType::MOTOR) {
         for (int i = 0; i < motors.size(); i++) {
           MotorController cont = motors.at(i);
           screen.drawRectangle(120 * (i % 4), 50 + 95 * floor(i / 4), 120, 95);
@@ -101,23 +114,28 @@ class GUI {
     // Handle Screen Press
     void update() {
       if (screen.pressing()) {
-        for (int i = 0; i < buttons.size(); i++) {
-          buttons.at(i).update(screen.xPosition(), screen.yPosition());
-        }
-        if (buttons[0].pressed) {
-          currentTab = Tabs::SENSOR;
-        }
-        if (buttons[1].pressed) {
-          currentTab = Tabs::MOTOR;
+        // Test For Tab Change
+        for (TabButton tab: tabs) {
+          tab.update(screen.xPosition(), screen.yPosition());
+          if (tab.pressed) {
+            currentTab = tab.tab;
+          }
         }
 
+        // Test For Auton Change
+        for (AutonButton button: autons) {
+          button.update(screen.xPosition(), screen.yPosition());
+          if (button.pressed) {
+            autonChoice = button.auton;
+          }
+        }
         draw(); 
         pressing = true;
       }
 
       if (pressing && !screen.pressing()) {
-        for (int i = 0; i < buttons.size(); i++) {
-          buttons.at(i).update(10000, 10000);
+        for (int i = 0; i < tabs.size(); i++) {
+          tabs.at(i).update(10000, 10000);
         }
         draw(); 
         pressing = false;
