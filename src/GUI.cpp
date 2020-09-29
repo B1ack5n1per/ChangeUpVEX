@@ -18,7 +18,7 @@ class AutonButton {
     int x, y, w, h;
     Auton auton;
 
-    AutonButton(int X, int Y, int W, int H, color CLR, string TEXT, Auton AUTON) {
+    AutonButton(int X, int Y, int W, int H, color CLR, Auton AUTON, string TEXT) {
       x = X;
       y = Y;
       w = W;
@@ -95,6 +95,10 @@ class GUI {
       tabs.push_back(TabButton(0, 0, 155, 50, color(238, 238, 238), TabType::AUTON, "Auton"));
       tabs.push_back(TabButton(165, 0, 155, 50, color(238, 238, 238), TabType::MOTOR, "Motors"));
       tabs.push_back(TabButton(330, 0, 155, 50, color(238, 238, 238), TabType::SENSOR, "Sensors"));
+      autons.push_back(AutonButton(5, 55, 230, 85, color(138, 238, 138), Auton::BLUELEFT, "Blue Left"));
+      autons.push_back(AutonButton(245, 55, 230, 85, color(138, 238, 138), Auton::BLUERIGHT, "Blue Right"));
+      autons.push_back(AutonButton(5, 150, 230, 85, color(238, 138, 138), Auton::REDLEFT, "Red Left"));
+      autons.push_back(AutonButton(245, 150, 230, 85, color(238, 138, 138), Auton::REDRIGHT, "Red Right"));
     }
 
     // Draw Elements
@@ -107,6 +111,11 @@ class GUI {
         for (int i = 0; i < motors.size(); i++) {
           MotorController cont = motors.at(i);
           screen.drawRectangle(120 * (i % 4), 50 + 95 * floor(i / 4), 120, 95);
+        }
+      }
+      if (currentTab == TabType::AUTON) {
+        for (AutonButton btn : autons) {
+          btn.draw(screen);
         }
       }
     }
