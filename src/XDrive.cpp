@@ -4,6 +4,8 @@ class XDrive {
   public:
     MotorController leftA, leftB, rightA, rightB;
 
+    XDrive() {}
+
     XDrive(MotorController a, MotorController b, MotorController c, MotorController d) {
       leftA = a;
       leftB = b;
@@ -11,7 +13,7 @@ class XDrive {
       rightB = d;
     }
     
-
+    // Initial Motor Spin
     void spin(directionType dir) {
       leftA.spin(dir);
       leftB.spin(dir);
@@ -19,6 +21,7 @@ class XDrive {
       rightB.spin(dir);
     }
 
+    // Control Motor Velocities
     void setVelocity(int32_t x, int32_t y, int32_t r) {
       // Set Translation
       leftA.speed += cube(y) + cube(x);
@@ -39,6 +42,7 @@ class XDrive {
       rightB.update();
     }
 
+    // Cube Input Values for Sensitivity
     double cube(int32_t val) {
       return val * val * val / 10000;
     }

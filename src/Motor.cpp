@@ -1,5 +1,6 @@
 #include "MotorData.cpp"
 
+// Motor Sub-Class for accesessing formated data
 class MotorController: public motor {
   public:
     MotorController(): motor(PORT1) {

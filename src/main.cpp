@@ -16,7 +16,7 @@ competition Competition;
 
 controller control = controller();
 
-
+// Declare and Initialize Motors
 MotorController indexer = MotorController("Indexer", PORT6, ratio6_1, false);
 MotorController intakeLeft = MotorController("Intake-Left", PORT4, ratio18_1, false);
 MotorController intakeRight = MotorController("Intake-Right", PORT5, ratio18_1, false);
@@ -25,22 +25,36 @@ MotorController leftFront = MotorController("Front-Left", PORT1, ratio18_1, fals
 MotorController leftBack = MotorController("Back-Left", PORT2, ratio18_1, false);
 MotorController rightBack = MotorController("Back-Right", PORT9, ratio18_1, true);
 MotorController rightFront = MotorController("Front-Right", PORT10, ratio18_1, true);
-XDrive drive = XDrive(leftFront, leftBack, rightBack, rightFront);
+XDrive xDrive = XDrive(leftFront, leftBack, rightBack, rightFront);
 
 GUI gui = GUI(Brain.Screen, vector<MotorController> {leftFront, rightFront, intakeLeft, intakeRight, leftBack, rightBack, indexer, flywheel});
+AutonController autonSelect = AutonController(xDrive, indexer, flywheel, intakeLeft, intakeRight);
 
 void pre_auton(void) {
   vexcodeInit();
-
+  gui.draw();
 }
 
 void autonomous(void) {
-
+  switch(gui.autonChoice) {
+    case Auton::BLUELEFT:
+      autonSelect.blueLeft();
+      break;
+    case Auton::BLUERIGHT:
+      autonSelect.blueRight();
+      break;
+    case Auton::REDLEFT:
+      autonSelect.redLeft();
+      break;
+    case Auton::REDRIGHT:
+      autonSelect.redRight();
+      break;
+  }
 }
 
 void usercontrol(void) {
   // Initiate Motors and GUI
-  drive.spin(directionType::fwd);
+  xDrive.spin(directionType::fwd);
   indexer.spin(directionType::fwd);
   intakeLeft.spin(directionType::fwd);
   intakeRight.spin(directionType::fwd);
@@ -53,7 +67,7 @@ void usercontrol(void) {
   while (1) {
     
     // XDrive Control 
-    drive.setVelocity(control.Axis4.position(), control.Axis3.position(), control.Axis1.position());
+    xDrive.setVelocity(control.Axis4.position(), control.Axis3.position(), control.Axis1.position());
 
     // Index Control
     if (control.ButtonR1.pressing()) {
@@ -104,6 +118,8 @@ int main() {
   pre_auton();
 
   while (true) {
+    // Update GUI
+    gui.update();
     wait(100, msec);
   }
-}
+};

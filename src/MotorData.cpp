@@ -2,6 +2,7 @@
 using namespace vex;
 using namespace std;
 
+// Motor Data Format
 class MotorData {
   public:
     string name;
