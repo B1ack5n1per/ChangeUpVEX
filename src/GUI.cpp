@@ -111,7 +111,7 @@ class GUI {
       autons.push_back(AutonButton(245, 55, 230, 85, color(75, 75, 219), Auton::BLUERIGHT, "Blue Right"));
       autons.push_back(AutonButton(5, 150, 230, 85, color(224, 61, 61), Auton::REDLEFT, "Red Left"));
       autons.push_back(AutonButton(245, 150, 230, 85, color(224, 61, 61), Auton::REDRIGHT, "Red Right"));
-      screen.setFont(fontType::mono12);
+      screen.setFont(fontType::mono20);
     }
 
     // Draw Elements
@@ -126,10 +126,10 @@ class GUI {
           int x = 120 * (i % 4);
           int y = 50 + 95 * floor(i / 4);
           screen.drawRectangle(x, y, 120, 95, color(210, 210, 210));
-          screen.printAt(x + 5, y + 5, data.name.c_str());
-          screen.printAt(x + 5, y + 19, to_string(data.temp).append(" C").c_str());
-          screen.printAt(x + 5, y + 31, to_string(data.rotations).append(" deg").c_str());
-          screen.printAt(x + 5, y + 48, to_string(data.rpm).append(" rpm").c_str());
+          screen.printAt(x + 5, y + 3, data.name.c_str());
+          screen.printAt(x + 5, y + 26, to_string(data.temp).append(" C").c_str());
+          screen.printAt(x + 5, y + 49, to_string(data.rotations).append(" deg").c_str());
+          screen.printAt(x + 5, y + 72, to_string(data.rpm).append(" rpm").c_str());
         }
       }
       if (currentTab == TabType::AUTON) {
