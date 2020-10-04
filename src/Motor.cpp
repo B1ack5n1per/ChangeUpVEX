@@ -8,11 +8,17 @@ class MotorController: public motor {
     }
     MotorController(string title, int32_t port, gearSetting gears, bool reversed): motor(port, gears, reversed) {
       name = title;
+      rpmMultiplier = 1;
+    }
+
+    MotorController(string title, int32_t port, gearSetting gears, bool reversed, double rpmStretch): motor(port, gears, reversed) {
+      name = title;
+      rpmMultiplier = rpmStretch;
     }
 
 
     MotorData getData() {
-      return MotorData(name, temperature(temperatureUnits::celsius), rotation(rotationUnits::deg), velocity(velocityUnits::rpm));
+      return MotorData(name, temperature(temperatureUnits::celsius), rotation(rotationUnits::deg), velocity(velocityUnits::rpm) * rpmMultiplier);
     }
 
     double speed;
@@ -24,4 +30,5 @@ class MotorController: public motor {
 
   private:
     string name;
+    double rpmMultiplier;
 };

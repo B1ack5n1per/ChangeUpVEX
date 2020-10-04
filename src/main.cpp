@@ -8,6 +8,10 @@
 /*----------------------------------------------------------------------------*/
 
 // ---- START VEXCODE CONFIGURED DEVICES ----
+// Robot Configuration:
+// [Name]               [Type]        [Port(s)]
+// Vision20             vision        20              
+// touchSensor          bumper        A               
 // ---- END VEXCODE CONFIGURED DEVICES ----
 
 #include "GUI.cpp"
@@ -15,12 +19,11 @@
 competition Competition;
 
 controller control = controller();
-
 // Declare and Initialize Motors
 MotorController indexer = MotorController("Indexer", PORT6, ratio6_1, false);
 MotorController intakeLeft = MotorController("Intake-Left", PORT4, ratio18_1, false);
 MotorController intakeRight = MotorController("Intake-Right", PORT5, ratio18_1, false);
-MotorController flywheel = MotorController("Flywheel", PORT7, ratio6_1, true);
+MotorController flywheel = MotorController("Flywheel", PORT7, ratio6_1, true, 2);
 MotorController leftFront = MotorController("Front-Left", PORT1, ratio18_1, false);
 MotorController leftBack = MotorController("Back-Left", PORT2, ratio18_1, false);
 MotorController rightBack = MotorController("Back-Right", PORT9, ratio18_1, true);
@@ -29,6 +32,8 @@ XDrive xDrive = XDrive(leftFront, leftBack, rightBack, rightFront);
 
 GUI gui = GUI(Brain.Screen, vector<MotorController> {leftFront, rightFront, intakeLeft, intakeRight, leftBack, rightBack, indexer, flywheel});
 AutonController autonSelect = AutonController(xDrive, indexer, flywheel, intakeLeft, intakeRight);
+
+BallColour loaded;
 
 void pre_auton(void) {
   vexcodeInit();
@@ -107,7 +112,11 @@ void usercontrol(void) {
 
     // Update GUI
     gui.update();
-    wait(20, msec); 
+
+    // Get Ball Colour
+    loaded = gui.getColour();
+
+    wait(20, msec);
   }
 }
 

@@ -5,14 +5,6 @@
 #include "string"
 #include "Autons.cpp"
 
-enum TabType {
-  AUTON, MOTOR, SENSOR, ALL
-};
-
-enum Auton {
-  BLUELEFT, BLUERIGHT, REDLEFT, REDRIGHT
-};
-
 template <typename T> string to_string(T value) {
     std::ostringstream os;
     os << value;
@@ -41,7 +33,7 @@ class AutonButton {
     void draw(brain::lcd screen) {
       screen.drawRectangle(x, y, w, h, clr);
       if (!text.empty()) {
-        screen.printAt(x + (w - screen.getStringWidth(text.c_str())) / 2, y + (h - screen.getStringWidth(text.c_str())) / 2, text.c_str());
+        screen.printAt(x + 5, y + 5, text.c_str());
       }
     }
 
@@ -75,7 +67,7 @@ class TabButton {
     void draw(brain::lcd screen, TabType currentTab) {
       screen.drawRectangle(x, y, w, h, color(238, 238, 238));
       if (!text.empty()) {
-        screen.printAt(x + (w - screen.getStringWidth(text.c_str())) / 2, y + (h - screen.getStringWidth(text.c_str())) / 2, text.c_str());
+        screen.printAt(x + 5, y + 20, text.c_str());
       }
 
     }
@@ -98,7 +90,12 @@ class GUI {
     vector<AutonButton> autons;
     TabType currentTab = TabType::MOTOR;
     Auton autonChoice = Auton::BLUELEFT;
+    BallColour colour;
     bool pressing;
+    vision::signature BLUEBALL = vision::signature(1, -3441, -2785, -3113, 8975, 10355, 9665, 2.500, 0);
+    vision::signature REDBALL = vision::signature(3, 8099, 8893, 8496, -1505, -949, -1227, 2.500, 0);
+
+
 
     // Add Elements to GUI
     GUI(brain::lcd SCREEN, vector<MotorController> mtrs) {
@@ -126,10 +123,10 @@ class GUI {
           int x = 120 * (i % 4);
           int y = 50 + 95 * floor(i / 4);
           screen.drawRectangle(x, y, 120, 95, color(210, 210, 210));
-          screen.printAt(x + 5, y + 3, data.name.c_str());
-          screen.printAt(x + 5, y + 26, to_string(data.temp).append(" C").c_str());
-          screen.printAt(x + 5, y + 49, to_string(data.rotations).append(" deg").c_str());
-          screen.printAt(x + 5, y + 72, to_string(data.rpm).append(" rpm").c_str());
+          screen.printAt(x + 5, y + 23, data.name.c_str());
+          screen.printAt(x + 5, y + 46, to_string(data.temp).append(" C").c_str());
+          screen.printAt(x + 5, y + 69, to_string(data.rotations).append(" deg").c_str());
+          screen.printAt(x + 5, y + 92, to_string(data.rpm).append(" rpm").c_str());
         }
       }
       if (currentTab == TabType::AUTON) {
@@ -141,6 +138,19 @@ class GUI {
 
     // Handle Screen Press
     void update() {
+      // Print Motors
+      if (currentTab == TabType::MOTOR) {
+          for (int i = 0; i < motors.size(); i++) {
+            MotorData data = motors.at(i).getData();
+            int x = 120 * (i % 4);
+            int y = 50 + 95 * floor(i / 4);
+            screen.drawRectangle(x, y, 120, 95, color(210, 210, 210));
+            screen.printAt(x + 5, y + 23, data.name.c_str());
+            screen.printAt(x + 5, y + 46, to_string(data.temp).append("C").c_str());
+            screen.printAt(x + 5, y + 69, to_string(data.rotations).append("deg").c_str());
+            screen.printAt(x + 5, y + 92, to_string(data.rpm).append("rpm").c_str());
+          }
+        }
       if (screen.pressing()) {
         // Test For Tab Change
         for (TabButton tab: tabs) {
@@ -164,6 +174,23 @@ class GUI {
         pressing = true;
       }
 
+      // Get Colour of Ball
+      if (currentTab == TabType::SENSOR) {
+        // Vision Sensor
+        colour = BallColour::NONE;
+
+        Vision20.takeSnapshot(REDBALL);
+        if (Vision20.objectCount > 0) colour = BallColour::RED;
+
+        Vision20.takeSnapshot(BLUEBALL);
+        if (Vision20.objectCount > 0) colour = BallColour::BLUE;
+
+        screen.printAt(100, 100, ("Vision Sensor: " + ballColourToString(colour)).c_str());
+        
+        //Touch Sensor
+        screen.printAt(100, 200, ("Touch Sensor: " + to_string(touchSensor.pressing())).c_str());
+      }
+
       if (pressing && !screen.pressing()) {
         for (int i = 0; i < tabs.size(); i++) {
           tabs.at(i).update(10000, 10000);
@@ -171,5 +198,17 @@ class GUI {
         draw(); 
         pressing = false;
       }
+    }
+
+    static string ballColourToString(BallColour clr) {
+      switch(clr) {
+        case BLUE: return "blue";
+        case RED: return "red";
+        default: return "none";
+      }
+    }
+
+    BallColour getColour() {
+      return colour;
     }
 };

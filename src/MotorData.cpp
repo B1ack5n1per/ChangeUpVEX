@@ -1,4 +1,5 @@
 #include "vex.h"
+#include "enums.cpp"
 using namespace vex;
 using namespace std;
 
