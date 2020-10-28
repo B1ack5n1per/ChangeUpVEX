@@ -4,6 +4,7 @@
 #include "iostream"
 #include "string"
 #include "Autons.cpp"
+#include "cmath"
 
 template <typename T> string to_string(T value) {
     std::ostringstream os;
@@ -144,7 +145,8 @@ class GUI {
             MotorData data = motors.at(i).getData();
             int x = 120 * (i % 4);
             int y = 50 + 95 * floor(i / 4);
-            screen.drawRectangle(x, y, 120, 95, color(210, 210, 210));
+            double g = -0.5 * (abs((data.temp - 20) / (50 - 20) - 1) - (data.temp - 20) / (50 - 20) - 1);
+            screen.drawRectangle(x, y, 120, 95, color(255 - g, g, 210));
             screen.printAt(x + 5, y + 23, data.name.c_str());
             screen.printAt(x + 5, y + 46, to_string(data.temp).append("C").c_str());
             screen.printAt(x + 5, y + 69, to_string(data.rotations).append("deg").c_str());
